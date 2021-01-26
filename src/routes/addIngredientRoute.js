@@ -1,5 +1,5 @@
 export const addIngredientRoute = {
-  method: 'POST',
+  method: 'post',
   path: '/ingredients',
   handler: async (req, res) => {},
 };

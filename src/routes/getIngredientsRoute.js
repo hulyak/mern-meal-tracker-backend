@@ -1,5 +1,5 @@
 export const getIngredientsRoute = {
-  method: 'GET',
+  method: 'get',
   path: '/ingredients',
   handler: async (req, res) => {},
 };

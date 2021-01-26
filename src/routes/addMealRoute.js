@@ -1,5 +1,5 @@
 export const addMealRoute = {
-  method: 'POST',
+  method: 'post',
   path: '/meals',
   handler: async (req, res) => {},
 };

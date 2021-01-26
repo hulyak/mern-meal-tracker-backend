@@ -1,5 +1,5 @@
 export const deleteIngredientRoute = {
-  method: 'DELETE',
+  method: 'delete',
   path: '/ingredients/:name',
   handler: async (req, res) => {},
 };
