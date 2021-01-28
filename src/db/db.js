@@ -1,5 +1,4 @@
 import { MongoClient } from 'mongodb';
-
 const DB_NAME = 'meal-tracker';
 
 export const db = {
