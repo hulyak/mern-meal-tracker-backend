@@ -7,6 +7,6 @@ export const deleteMealRoute = {
     const { id } = req.params;
     await deleteMeal(id);
     const updatedMeals = await getPopulatedMeals();
-    return updatedMeals;
+    res.status(200).json(updatedMeals);
   },
 };
