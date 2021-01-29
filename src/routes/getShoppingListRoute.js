@@ -1,14 +1,59 @@
 import { getIngredients, getPopulatedMeals } from '../db';
 
+const emptyIngredients = {
+  count: 0,
+  pounds: 0,
+  cups: 0,
+  tablespoons: 0,
+  teaspoons: 0,
+};
+
+const condenseIngredients = (ingredients) =>
+  ingredients.reduce(
+    (acc, i) => ({
+      ...acc,
+      [i.name]: acc[i.name]
+        ? { ...acc[i.name], [i.units]: acc[i.name][i.units] + i.amount }
+        : { ...emptyIngredients, [i.units]: i.amount },
+    }),
+    {}
+  );
+
+const getMissingIngredients = (required, owned) =>
+  Object.keys(required).reduce(
+    (acc, name) => ({
+      ...acc,
+      [name]: Object.keys(required[name]).reduce(
+        (unitAmounts, unit) => ({
+          ...unitAmounts,
+          [unit]: Math.max(
+            required[name][unit] - ((owned[name] || {})[unit] || 0),
+            0
+          ),
+        }),
+        {}
+      ),
+    }),
+    {}
+  );
+
+const getShoppingList = (missingIngredients) =>
+  Object.keys(missingIngredients).map(
+    (name) =>
+      name +
+      ': ' +
+      Object.keys(missingIngredients[name])
+        .filter((unit) => missingIngredients[name][unit] > 0)
+        .map((unit) => `${missingIngredients[name][unit]} ${unit}`)
+        .join(' + ')
+  );
+
 export const getShoppingListRoute = {
   method: 'get',
   path: '/shopping-list',
   handler: async (req, res) => {
-    // getting user's ingredients
     const ingredients = await getIngredients();
     const meals = await getPopulatedMeals();
-
-    // get only the future meals
     const futureMeals = meals.filter((meal) => {
       const mealDate = new Date(meal.plannedDate);
       const yesterday = new Date();
@@ -21,17 +66,13 @@ export const getShoppingListRoute = {
       (meal) => meal.recipe.ingredients
     );
 
-    // compare the ingredients to user already have
-    // remove duplicate names
-    const requiredIngredientsNames = [
-      ...new Set(requiredIngredients.map((ingredient) => ingredient.name)),
-    ];
-    const missingIngredients = requiredIngredientsNames.filter(
-      (ingredientName) =>
-        !ingredients.some(
-          (userIngredient) => userIngredient.name === ingredientName.toLowerCase()
-        )
+    const condensedMealIngredients = condenseIngredients(requiredIngredients);
+    const condensedUserIngredients = condenseIngredients(ingredients);
+    const missingIngredients = getMissingIngredients(
+      condensedMealIngredients,
+      condensedUserIngredients
     );
-    res.status(200).json(missingIngredients);
+    const shoppingList = getShoppingList(missingIngredients);
+    res.status(200).json(shoppingList);
   },
 };
